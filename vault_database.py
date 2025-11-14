@@ -52,7 +52,7 @@ class VaultDatabase:
         self.conn.commit()
         print("Database tables created or already exist.")
 
-    def add_file(self, filename: str, original_hash: str, perceptual_hash: Optional[str], encrypted_path: str) -> Optional[int]:
+    def add_file(self, filename: str, original_hash: str, perceptual_hash: Optional[str], encrypted_path: str, check_duplicates: bool = True) -> Optional[int]:
         """
         Adds a new file record to the database.
 
@@ -61,11 +61,16 @@ class VaultDatabase:
             original_hash (str): The SHA-256 hash of the original file.
             perceptual_hash (Optional[str]): The dHash of the file (if an image).
             encrypted_path (str): The path to the stored encrypted file.
+            check_duplicates (bool): If True, checks for duplicate original_hash before adding.
 
         Returns:
-            Optional[int]: The ID of the newly inserted row, or None on failure.
+            Optional[int]: The ID of the newly inserted row, or None on failure (e.g., duplicate).
         """
         try:
+            if check_duplicates and self.cursor.execute('SELECT id FROM files WHERE original_hash = ?', (original_hash,)).fetchone():
+                print(f"Error: A file with the same original hash '{original_hash}' already exists and duplicate check is enabled.")
+                return None
+
             upload_date = datetime.datetime.now().isoformat()
             self.cursor.execute('''
                 INSERT INTO files (filename, original_hash, perceptual_hash, encrypted_path, upload_date)
@@ -75,7 +80,10 @@ class VaultDatabase:
             print(f"Added file '{filename}' to the database.")
             return self.cursor.lastrowid
         except sqlite3.IntegrityError:
-            print(f"Error: A file with the same original hash '{original_hash}' already exists.")
+            print(f"Error: An integrity error occurred, possibly a unique constraint violation for hash '{original_hash}'.")
+            return None
+        except Exception as e:
+            print(f"An unexpected error occurred while adding file: {e}")
             return None
 
     def get_file(self, file_id: int) -> Optional[sqlite3.Row]:
@@ -136,6 +144,18 @@ class VaultDatabase:
         self.conn.commit()
         print(f"Added scan result for file ID {file_id} found at {url}.")
         return self.cursor.lastrowid
+
+    def clear_all_files(self):
+        """Deletes all records from the 'files' table."""
+        self.cursor.execute('DELETE FROM files')
+        self.conn.commit()
+        print("All file records cleared from the database.")
+
+    def clear_all_scan_results(self):
+        """Deletes all records from the 'scan_results' table."""
+        self.cursor.execute('DELETE FROM scan_results')
+        self.conn.commit()
+        print("All scan results cleared from the database.")
 
     def close(self):
         """Closes the database connection."""

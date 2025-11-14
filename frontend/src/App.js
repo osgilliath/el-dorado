@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getFiles, uploadFile, downloadFile } from './api';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Modal, Button } from 'react-bootstrap';
 import PinInput from './PinInput';
 import './PinInput.css';
 
@@ -10,6 +11,7 @@ function App() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [pinEntered, setPinEntered] = useState(false);
+  const [searchResults, setSearchResults] = useState(null);
 
   useEffect(() => {
     if (pinEntered) {
@@ -39,9 +41,10 @@ function App() {
     setUploading(true);
     setError(null);
     try {
-      await uploadFile(selectedFile);
+      const response = await uploadFile(selectedFile);
       fetchFiles(); // Refresh file list
       setSelectedFile(null);
+      setSearchResults(response.search_results);
     } catch (error) {
       console.error('Error uploading file:', error);
       if (error.response && error.response.status === 409) {
@@ -72,6 +75,10 @@ function App() {
 
   const handlePinEntered = () => {
     setPinEntered(true);
+  };
+
+  const handleCloseSearchResults = () => {
+    setSearchResults(null);
   };
 
   return (
@@ -117,6 +124,30 @@ function App() {
           </div>
         </div>
       )}
+
+      <Modal show={searchResults !== null} onHide={handleCloseSearchResults}>
+        <Modal.Header closeButton>
+          <Modal.Title>Reverse Image Search Results</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {searchResults && searchResults.image_results && (
+            <ul>
+              {searchResults.image_results.map((result, index) => (
+                <li key={index}>
+                  <a href={result.link} target="_blank" rel="noopener noreferrer">
+                    {result.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseSearchResults}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

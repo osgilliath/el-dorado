@@ -6,6 +6,7 @@ from typing import Optional, Dict, Any
 from file_encryptor import FileEncryptor
 from image_hasher import ImageHasher
 from vault_database import VaultDatabase
+from reverse_image_search import reverse_image_search, upload_to_imgbb
 
 class VaultManager:
     """
@@ -32,7 +33,7 @@ class VaultManager:
         self.hasher = ImageHasher()
         self.db = VaultDatabase(db_path=os.path.join(base_path, 'vault.db'))
 
-    def upload_and_encrypt(self, file_path: str) -> Optional[int]:
+    def upload_and_encrypt(self, file_path: str, check_duplicates: bool = True) -> Optional[Dict[str, Any]]:
         """
         Manages the full process of uploading a file to the vault.
         1. Moves file to the upload folder.
@@ -44,9 +45,10 @@ class VaultManager:
 
         Args:
             file_path (str): The path to the file to be uploaded.
+            check_duplicates (bool): Whether to check for duplicate files.
 
         Returns:
-            Optional[int]: The ID of the file in the database, or None on failure.
+            Optional[Dict[str, Any]]: A dictionary containing the file ID and reverse image search results, or None on failure.
         """
         if not os.path.exists(file_path):
             print(f"Error: Source file not found at '{file_path}'.")
@@ -73,12 +75,22 @@ class VaultManager:
             # 3. Encrypt File
             self.encryptor.encrypt_file(temp_path, encrypted_path)
 
+            perceptual_hash = self.hasher.get_perceptual_hash(temp_path) # Can be None
+
+            # 2. Define Encrypted File Path
+            encrypted_filename = f"{crypto_hash[:16]}.enc"
+            encrypted_path = os.path.join(self.encrypted_folder, encrypted_filename)
+
+            # 3. Encrypt File
+            self.encryptor.encrypt_file(temp_path, encrypted_path)
+
             # 4. Add to Database
             file_id = self.db.add_file(
                 filename=original_filename,
                 original_hash=crypto_hash,
                 perceptual_hash=perceptual_hash,
-                encrypted_path=encrypted_path
+                encrypted_path=encrypted_path,
+                check_duplicates=check_duplicates
             )
             
             if file_id is None:
@@ -87,7 +99,23 @@ class VaultManager:
                 raise ValueError("File with this content already exists in the vault.")
 
             print(f"Successfully uploaded and encrypted '{original_filename}' with File ID: {file_id}.")
-            return file_id
+            
+            # Perform reverse image search
+            search_results = None
+            serp_api_key = os.environ.get("SERP_API_KEY")
+            imgbb_api_key = os.environ.get("IMGBB_API_KEY")
+
+            if not serp_api_key or not imgbb_api_key:
+                print("Warning: SERP_API_KEY or IMGBB_API_KEY not set. Skipping reverse image search.")
+            else:
+                # Upload image to ImgBB to get a URL
+                image_url = upload_to_imgbb(imgbb_api_key, temp_path)
+                if image_url:
+                    search_results = reverse_image_search(serp_api_key, image_url)
+                else:
+                    print("Warning: Failed to upload image to ImgBB. Skipping reverse image search.")
+            
+            return {"file_id": file_id, "search_results": search_results}
 
         except Exception as e:
             print(f"An error occurred during the upload process: {e}")
@@ -154,6 +182,26 @@ class VaultManager:
         """
         file_info = self.db.get_file(file_id)
         return dict(file_info) if file_info else None
+
+    def clear_vault(self):
+        """
+        Deletes all encrypted files and clears all database entries.
+        """
+        # Delete encrypted files
+        for filename in os.listdir(self.encrypted_folder):
+            file_path = os.path.join(self.encrypted_folder, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print(f'Failed to delete {file_path}. Reason: {e}')
+        
+        # Clear database tables
+        self.db.clear_all_files()
+        self.db.clear_all_scan_results()
+        print("Vault cleared: all encrypted files and database entries removed.")
 
     def close_db(self):
         """Closes the database connection."""

@@ -38,16 +38,16 @@ def upload_file():
             file.save(temp_file.name)
             temp_path = temp_file.name
 
-        file_id = None
+        result = None
         try:
-            file_id = vault_manager.upload_and_encrypt(temp_path)
+            result = vault_manager.upload_and_encrypt(temp_path, check_duplicates=False)
         finally:
             # Clean up the temporary file
             if os.path.exists(temp_path):
                 os.remove(temp_path)
 
-        if file_id:
-            return jsonify({'message': 'File uploaded successfully', 'file_id': file_id})
+        if result:
+            return jsonify({'message': 'File uploaded successfully', 'file_id': result['file_id'], 'search_results': result['search_results']})
         else:
             # The file might already exist or an error occurred.
             return jsonify({'error': 'Failed to upload file. It may already exist.'}), 409
@@ -70,6 +70,15 @@ def download_file(file_id):
         return send_from_directory(temp_dir, file_info['filename'], as_attachment=True)
     else:
         return jsonify({'error': 'Failed to decrypt file'}), 500
+
+@app.route('/api/clear-vault', methods=['POST'])
+def clear_vault():
+    """Clears all files and database entries from the vault."""
+    try:
+        vault_manager.clear_vault()
+        return jsonify({'message': 'Vault cleared successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': f'Failed to clear vault: {e}'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
