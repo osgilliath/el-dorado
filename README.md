@@ -35,11 +35,11 @@ This project provides a production-ready system for securely encrypting, storing
 
 ## Reverse Image Search
 
-This project also includes a program to perform a reverse image search using Serp API and Imgur.
+This project also includes a program to perform a reverse image search using Serp API and ImgBB.
 
 ### Features
 
--   Uploads a local image to Imgur.
+-   Uploads a local image to ImgBB.
 -   Uses the uploaded image URL to perform a reverse image search with Serp API.
 -   Displays the results, including similar images and the websites they appear on.
 
@@ -50,11 +50,10 @@ This project also includes a program to perform a reverse image search using Ser
     -   Sign up for a free account.
     -   You will find your API key in your account dashboard.
 
-2.  **Imgur Client ID:**
-    -   Go to [https://api.imgur.com/oauth2/addclient](https://api.imgur.com/oauth2/addclient)
-    -   Register a new application.
-    -   Choose 'Anonymous usage without user authorization'.
-    -   After registration, you will get a 'Client ID'.
+2.  **ImgBB API Key:**
+    -   Go to [https://api.imgbb.com/](https://api.imgbb.com/)
+    -   Sign up for a free account.
+    -   You will find your API key on the API page.
 
 ### How to Run the Reverse Image Search
 
@@ -64,9 +63,9 @@ This project also includes a program to perform a reverse image search using Ser
     ```
 
 2.  **Run the script:**
-    You can provide the API keys as command-line arguments or set them as environment variables (`SERP_API_KEY`, `IMGUR_CLIENT_ID`).
+    You can provide the API keys as command-line arguments or set them as environment variables (`SERP_API_KEY`, `IMGBB_API_KEY`).
     ```bash
-    python reverse_image_search.py <path_to_your_image> --serp_api_key YOUR_SERP_API_KEY --imgur_client_id YOUR_IMGUR_CLIENT_ID
+    python reverse_image_search.py <path_to_your_image> --serp_api_key YOUR_SERP_API_KEY --imgbb_api_key YOUR_IMGBB_API_KEY
     ```
 
 ## How to Run the Secure Vault
