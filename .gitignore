@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Vault files
+my_secure_vault/
+vault_demo/
+/vault_project/my_secure_vault/
+/vault_project/encrypted/
+/vault_project/uploads/
+/vault_project/downloads/
+*.db
+*.key
+*.enc
