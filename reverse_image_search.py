@@ -3,6 +3,8 @@ import base64
 import os
 import argparse
 import json
+import tkinter as tk
+from tkinter import filedialog
 
 #
 # --- HOW TO GET YOUR API KEYS ---
@@ -82,7 +84,6 @@ def reverse_image_search(api_key, image_url):
 
 def main():
     parser = argparse.ArgumentParser(description="Perform a reverse image search using Serp API and ImgBB.")
-    parser.add_argument("image_path", help="Path to the local image file.")
     parser.add_argument("--serp_api_key", help="Your Serp API key.", default=os.environ.get("SERP_API_KEY"))
     parser.add_argument("--imgbb_api_key", help="Your ImgBB API key.", default=os.environ.get("IMGBB_API_KEY"))
     args = parser.parse_args()
@@ -94,7 +95,20 @@ def main():
         print("Error: ImgBB API key not provided. Use --imgbb_api_key or set IMGBB_API_KEY environment variable.")
         return
 
-    imgbb_url = upload_to_imgbb(args.imgbb_api_key, args.image_path)
+    # Create a Tkinter root window and hide it
+    root = tk.Tk()
+    root.withdraw()
+
+    image_path = filedialog.askopenfilename(
+        title="Select an Image File",
+        filetypes=[("Image files", "*.jpg *.jpeg *.png *.gif *.bmp *.webp"), ("All files", "*.*")]
+    )
+
+    if not image_path:
+        print("No image file selected. Exiting.")
+        return
+
+    imgbb_url = upload_to_imgbb(args.imgbb_api_key, image_path)
 
     if imgbb_url:
         print("\nPerforming reverse image search...")
