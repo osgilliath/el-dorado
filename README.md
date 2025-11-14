@@ -17,30 +17,67 @@ This project provides a production-ready system for securely encrypting, storing
 ## Project Structure
 
 ```
-vault_project/
-├── encrypted/              # Storage for encrypted .enc files
-├── uploads/                # Temporary folder for file processing
-├── vault_demo/             # Directory for the main.py demonstration
-├── secret.key              # Auto-generated secret encryption key
-├── vault.db                # Auto-generated SQLite database
+/
+├── my_secure_vault/        # Default directory for the vault
+│   ├── encrypted/          # Storage for encrypted .enc files
+│   ├── secret.key          # Auto-generated secret encryption key
+│   └── vault.db            # Auto-generated SQLite database
+├── .gitignore              # Files and directories to be ignored by git
 ├── file_encryptor.py       # Handles encryption/decryption
 ├── image_hasher.py         # Handles hash generation
 ├── vault_database.py       # Manages the SQLite database
-├── vault_manager.py        # Orchestrates all operations
-├── main.py                 # Example usage script
+├── vault_manager.py        # Orchestrates all vault operations
+├── main.py                 # Main script to run the vault application
 ├── test_vault.py           # Unit tests for the system
-└── requirements.txt        # Python dependencies
+├── requirements.txt        # Python dependencies
+└── reverse_image_search.py # New reverse image search program
 ```
 
-## How to Run
+## Reverse Image Search
+
+This project also includes a program to perform a reverse image search using Serp API and Imgur.
+
+### Features
+
+-   Uploads a local image to Imgur.
+-   Uses the uploaded image URL to perform a reverse image search with Serp API.
+-   Displays the results, including similar images and the websites they appear on.
+
+### How to Get API Keys
+
+1.  **Serp API Key:**
+    -   Go to [https://serpapi.com/](https://serpapi.com/)
+    -   Sign up for a free account.
+    -   You will find your API key in your account dashboard.
+
+2.  **Imgur Client ID:**
+    -   Go to [https://api.imgur.com/oauth2/addclient](https://api.imgur.com/oauth2/addclient)
+    -   Register a new application.
+    -   Choose 'Anonymous usage without user authorization'.
+    -   After registration, you will get a 'Client ID'.
+
+### How to Run the Reverse Image Search
 
 1.  **Install Dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
 
-2.  **Run the Demonstration:**
-    The `main.py` script provides a comprehensive demonstration of all features. It will create a `vault_demo` directory to run in, so it won't interfere with any existing vault data.
+2.  **Run the script:**
+    You can provide the API keys as command-line arguments or set them as environment variables (`SERP_API_KEY`, `IMGUR_CLIENT_ID`).
+    ```bash
+    python reverse_image_search.py <path_to_your_image> --serp_api_key YOUR_SERP_API_KEY --imgur_client_id YOUR_IMGUR_CLIENT_ID
+    ```
+
+## How to Run the Secure Vault
+
+1.  **Install Dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+2.  **Run the Application:**
+    The `main.py` script provides an interactive command-line interface to the vault.
     ```bash
     python main.py
     ```
