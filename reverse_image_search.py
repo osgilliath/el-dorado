@@ -5,6 +5,7 @@ import argparse
 import json
 import tkinter as tk
 from tkinter import filedialog
+from twilio.rest import Client
 
 #
 # --- HOW TO GET YOUR API KEYS ---
@@ -18,6 +19,12 @@ from tkinter import filedialog
 #    - Go to https://api.imgbb.com/
 #    - Sign up for a free account.
 #    - You will find your API key on the API page.
+#
+# 3. Twilio Credentials:
+#    - Go to https://www.twilio.com/
+#    - Sign up for a free account.
+#    - You will find your Account SID and Auth Token in your account dashboard.
+#    - You will also need a Twilio phone number.
 #
 
 def upload_to_imgbb(api_key, image_path):
@@ -82,10 +89,29 @@ def reverse_image_search(api_key, image_url):
         print(f"Failed to decode JSON response from Serp API: {response.text}")
         return None
 
+def send_sms(account_sid, auth_token, twilio_phone_number, user_phone_number, message):
+    """
+    Sends an SMS using Twilio.
+    """
+    try:
+        client = Client(account_sid, auth_token)
+        message = client.messages.create(
+            body=message,
+            from_=twilio_phone_number,
+            to=user_phone_number
+        )
+        print(f"SMS sent successfully to {user_phone_number}. Message SID: {message.sid}")
+    except Exception as e:
+        print(f"Error sending SMS: {e}")
+
 def main():
     parser = argparse.ArgumentParser(description="Perform a reverse image search using Serp API and ImgBB.")
     parser.add_argument("--serp_api_key", help="Your Serp API key.", default=os.environ.get("SERP_API_KEY"))
     parser.add_argument("--imgbb_api_key", help="Your ImgBB API key.", default=os.environ.get("IMGBB_API_KEY"))
+    parser.add_argument("--twilio_account_sid", help="Your Twilio Account SID.", default=os.environ.get("TWILIO_ACCOUNT_SID"))
+    parser.add_argument("--twilio_auth_token", help="Your Twilio Auth Token.", default=os.environ.get("TWILIO_AUTH_TOKEN"))
+    parser.add_argument("--twilio_phone_number", help="Your Twilio phone number.", default=os.environ.get("TWILIO_PHONE_NUMBER"))
+    parser.add_argument("--user_phone_number", help="Your phone number to send the SMS to.", default=os.environ.get("USER_PHONE_NUMBER"))
     args = parser.parse_args()
 
     if not args.serp_api_key:
@@ -121,6 +147,17 @@ def main():
                 print(f"Link: {result.get('link')}")
                 print(f"Source: {result.get('source')}")
                 print("-" * 20)
+            
+            if args.twilio_account_sid and args.twilio_auth_token and args.twilio_phone_number and args.user_phone_number:
+                send_sms(
+                    args.twilio_account_sid,
+                    args.twilio_auth_token,
+                    args.twilio_phone_number,
+                    args.user_phone_number,
+                    "Your vault data has been leaked, kindly follow the required steps to remove it!!"
+                )
+            else:
+                print("\nTwilio credentials not fully provided. Skipping SMS notification.")
         else:
             print("No image results found.")
 

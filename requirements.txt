@@ -2,3 +2,5 @@ cryptography
 imagehash
 Pillow
 requests
+twilio
+PyJWT
