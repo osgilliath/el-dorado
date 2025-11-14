@@ -73,36 +73,44 @@ def handle_access(vault: VaultManager):
         print("The vault is currently empty.")
         return
 
-    print(f"Found {len(files)} file(s) in the vault.")
-    
-    # Create a temporary directory to hold decrypted files
-    with tempfile.TemporaryDirectory() as tmpdir:
-        print(f"Decrypting files to a temporary location for viewing...")
-        
-        for file_row in files:
-            file_info = dict(file_row)
-            decrypted_path = os.path.join(tmpdir, file_info['filename'])
-            
-            print(f"  - Decrypting '{file_info['filename']}'...")
-            success = vault.download_and_decrypt(file_info['id'], decrypted_path)
-            
-            if success:
-                print(f"    > Opening '{file_info['filename']}'...")
-                open_file(decrypted_path)
-            else:
-                print(f"    > Failed to decrypt '{file_info['filename']}'.")
+    print("\n--- Files in Vault ---")
+    for i, file_row in enumerate(files):
+        print(f"{i + 1}. {file_row['filename']}")
+    print("--------------------")
 
-        print("\nAll accessible files have been opened.")
-        input("Press Enter to close all temporary files and return to the main menu...")
+    try:
+        selection = int(input(f"Enter the number of the file to open (1-{len(files)}): "))
+        if not 1 <= selection <= len(files):
+            print("Invalid selection.")
+            return
+    except ValueError:
+        print("Invalid input. Please enter a number.")
+        return
+
+    selected_file = dict(files[selection - 1])
+
+    # Create a temporary directory to hold the decrypted file
+    with tempfile.TemporaryDirectory() as tmpdir:
+        decrypted_path = os.path.join(tmpdir, selected_file['filename'])
+        
+        print(f"\nDecrypting '{selected_file['filename']}' to a temporary location for viewing...")
+        success = vault.download_and_decrypt(selected_file['id'], decrypted_path)
+        
+        if success:
+            print(f"  > Opening '{selected_file['filename']}'...")
+            open_file(decrypted_path)
+            input("  > Press Enter to close the temporary file and return to the main menu...")
+        else:
+            print(f"  > Failed to decrypt '{selected_file['filename']}'.")
     
-    print("Temporary files have been securely deleted.")
+    print("Temporary file has been securely deleted.")
 
 def main():
     """
     Main function to run the interactive vault application.
     """
     # Use a persistent directory for the vault
-    VAULT_DIR = "my_secure_vault"
+    VAULT_DIR = "vault_project/my_secure_vault"
     print(f"--- Secure Vault Application ---")
     print(f"Using vault directory: '{VAULT_DIR}'")
 
