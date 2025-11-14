@@ -110,7 +110,7 @@ def main():
     Main function to run the interactive vault application.
     """
     # Use a persistent directory for the vault
-    VAULT_DIR = "vault_project/my_secure_vault"
+    VAULT_DIR = "my_secure_vault"
     print(f"--- Secure Vault Application ---")
     print(f"Using vault directory: '{VAULT_DIR}'")
 
