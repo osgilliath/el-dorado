@@ -13,6 +13,7 @@ This project provides a production-ready system for securely encrypting, storing
 - **Database Storage:** A SQLite database (`vault.db`) stores all file metadata, including hashes, original filenames, and storage paths.
 - **Secure File Naming:** Encrypted files are named using the first 16 characters of their SHA-256 hash, preventing information leakage from filenames.
 - **Orchestrated Workflow:** The `VaultManager` class provides a simple interface for complex upload and download operations, including hash verification and cleanup.
+- **SMS Notifications:** Receive SMS notifications for reverse image search results (requires Twilio).
 
 ## Project Structure
 
@@ -54,6 +55,39 @@ This project also includes a program to perform a reverse image search using Ser
     -   Go to [https://api.imgbb.com/](https://api.imgbb.com/)
     -   Sign up for a free account.
     -   You will find your API key on the API page.
+
+### SMS Notification Configuration (Optional)
+
+To receive SMS notifications for reverse image search results, you need a Twilio account and a verified phone number.
+
+1.  **Twilio Account:**
+    -   Go to [https://www.twilio.com/](https://www.twilio.com/)
+    -   Sign up for an account.
+    -   Obtain your Account SID, Auth Token, and a Twilio phone number.
+
+2.  **Environment Variables:**
+    Set the following environment variables:
+    -   `TWILIO_ACCOUNT_SID`: Your Twilio Account SID.
+    -   `TWILIO_AUTH_TOKEN`: Your Twilio Auth Token.
+    -   `TWILIO_PHONE_NUMBER`: Your Twilio phone number (e.g., `+15017122661`).
+    -   `USER_PHONE_NUMBER`: The phone number to receive notifications (e.g., `+15558675310`).
+
+    Example (Linux/macOS):
+    ```bash
+    export TWILIO_ACCOUNT_SID="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    export TWILIO_AUTH_TOKEN="your_auth_token"
+    export TWILIO_PHONE_NUMBER="+1234567890"
+    export USER_PHONE_NUMBER="+19876543210"
+    ```
+    Example (Windows - Command Prompt):
+    ```bash
+    set TWILIO_ACCOUNT_SID="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    set TWILIO_AUTH_TOKEN="your_auth_token"
+    set TWILIO_PHONE_NUMBER="+1234567890"
+    set USER_PHONE_NUMBER="+19876543210"
+    ```
+
+    If these environment variables are not set, SMS notifications will be skipped.
 
 ### How to Run the Reverse Image Search
 
