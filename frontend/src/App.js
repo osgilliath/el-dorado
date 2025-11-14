@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { getFiles, uploadFile, downloadFile } from './api';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import PinInput from './PinInput';
+import './PinInput.css';
 
 function App() {
   const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
+  const [pinEntered, setPinEntered] = useState(false);
 
   useEffect(() => {
-    fetchFiles();
-  }, []);
+    if (pinEntered) {
+      fetchFiles();
+    }
+  }, [pinEntered]);
 
   const fetchFiles = async () => {
     try {
@@ -65,43 +70,53 @@ function App() {
     }
   };
 
+  const handlePinEntered = () => {
+    setPinEntered(true);
+  };
+
   return (
     <div className="container mt-5">
-      <h1 className="mb-4">My Secure Vault</h1>
+      {!pinEntered ? (
+        <PinInput onPinEntered={handlePinEntered} />
+      ) : (
+        <div>
+          <h1 className="mb-4">My Secure Vault</h1>
 
-      {error && <div className="alert alert-danger">{error}</div>}
+          {error && <div className="alert alert-danger">{error}</div>}
 
-      <div className="card mb-4">
-        <div className="card-body">
-          <h5 className="card-title">Upload New File</h5>
-          <div className="input-group">
-            <input type="file" className="form-control" onChange={handleFileChange} />
-            <button className="btn btn-primary" onClick={handleUpload} disabled={uploading}>
-              {uploading ? 'Uploading...' : 'Upload'}
-            </button>
+          <div className="card mb-4">
+            <div className="card-body">
+              <h5 className="card-title">Upload New File</h5>
+              <div className="input-group">
+                <input type="file" className="form-control" onChange={handleFileChange} />
+                <button className="btn btn-primary" onClick={handleUpload} disabled={uploading}>
+                  {uploading ? 'Uploading...' : 'Upload'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
+              Vault Files
+            </div>
+            <ul className="list-group list-group-flush">
+              {files.length === 0 ? (
+                <li className="list-group-item">No files in the vault.</li>
+              ) : (
+                files.map((file) => (
+                  <li key={file.id} className="list-group-item d-flex justify-content-between align-items-center">
+                    {file.filename}
+                    <button className="btn btn-success btn-sm" onClick={() => handleDownload(file.id, file.filename)}>
+                      Download
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
           </div>
         </div>
-      </div>
-
-      <div className="card">
-        <div className="card-header">
-          Vault Files
-        </div>
-        <ul className="list-group list-group-flush">
-          {files.length === 0 ? (
-            <li className="list-group-item">No files in the vault.</li>
-          ) : (
-            files.map((file) => (
-              <li key={file.id} className="list-group-item d-flex justify-content-between align-items-center">
-                {file.filename}
-                <button className="btn btn-success btn-sm" onClick={() => handleDownload(file.id, file.filename)}>
-                  Download
-                </button>
-              </li>
-            ))
-          )}
-        </ul>
-      </div>
+      )}
     </div>
   );
 }
